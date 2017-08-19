@@ -172,4 +172,60 @@ def gdisconnect():
         response.headers['Content-Type'] = 'application/json'
         return response
 
-   
+   # The catalog.json
+@app.route('/catalog.json')
+def toJSON():
+    categories = session.query(Category).all()
+    items = session.query(Items).all()
+    return jsonify(
+        items=[item.serialize for item in items],
+        categories=[category.serialize for category in categories])
+
+
+# The category page
+@app.route('/<string:category_name>')
+def listCategory(category_name):
+    category = session.query(Category).filter_by(name=category_name).one()
+    items = session.query(Items).filter_by(category=category_name).all()
+    return render_template('category.html', category=category, items=items)
+
+
+# The item page
+@app.route('/<string:category_name>/<string:item_name>')
+def listItem(category_name, item_name):
+    category = session.query(Category).filter_by(name=category_name).one()
+    item = session.query(Items).filter_by(name=item_name).one()
+    return render_template('item.html', category=category, item=item)
+
+
+# The edit item page
+@app.route('/<string:category_name>/<string:item_name>/edit',
+           methods=["GET", "POST"])
+@login_required
+def editItem(category_name, item_name):
+    if(request.method == "GET"):
+        category = session.query(Category).filter_by(name=category_name).one()
+        item = session.query(Items).filter_by(name=item_name).one()
+        return render_template('edit.html', category=category, item=item)
+    else:
+        item = session.query(Items).filter_by(name=item_name).one()
+        session.delete(item)
+        session.commit()
+        name = request.form['name']
+        description = request.form['description']
+        newItem = Items(id=item.id, name=name, description=description,
+                        category=category_name)
+        session.add(newItem)
+        session.commit()
+        return redirect('/index')
+
+
+# The delete item page
+@app.route('/<string:category_name>/<string:item_name>/delete')
+@login_required
+def deleteItem(category_name, item_name):
+    item = session.query(Items).filter_by(name=item_name).one()
+    session.delete(item)
+    session.commit()
+    return redirect('/index')
+
