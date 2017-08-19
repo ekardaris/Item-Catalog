@@ -229,3 +229,22 @@ def deleteItem(category_name, item_name):
     session.commit()
     return redirect('/index')
 
+@login_required
+def addItem(category_name):
+    if (request.method == "GET"):
+        category = session.query(Category).filter_by(name=category_name).one()
+        return render_template('addItem.html', category=category)
+    else:
+        name = request.form['name']
+        description = request.form['description']
+        allItems = session.query(Items).all()
+        print("Len of items = "+str(len(allItems)))
+        newItem = Items(id=len(allItems)+1, name=name, description=description,
+                        category=category_name)
+        session.add(newItem)
+        session.commit()
+        return redirect('/index')
+
+# Run main
+if __name__ == '__main__':
+    app.run()
