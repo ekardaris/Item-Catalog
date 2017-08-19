@@ -48,3 +48,10 @@ def index():
     items = session.query(Items).all()
     return render_template('index.html', categories=categories, items=items)
 
+# The login page
+@app.route('/login')
+def login():
+    state = ''.join(random.choice(string.ascii_uppercase + string.digits)
+                    for x in range(32))
+    login_session['state'] = state
+    return render_template('login.html', STATE=state)
