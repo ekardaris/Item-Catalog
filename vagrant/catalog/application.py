@@ -39,3 +39,12 @@ def login_required(f):
             return redirect('/login')
         return f(*args, **kwargs)
     return decorated_function
+
+# The index page
+@app.route('/')
+@app.route('/index')
+def index():
+    categories = session.query(Category).all()
+    items = session.query(Items).all()
+    return render_template('index.html', categories=categories, items=items)
+
